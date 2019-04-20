@@ -13,7 +13,15 @@
         padding-right: 10px;
         padding-top: 20px;
         margin-bottom: 10px;
+        }
 
+        .currentEntry {
+            font-size: larger;
+        }
+        .previousEntry {
+            font-size: smaller;
+            margin-bottom: 0.5em;
+            margin-top: -.5em;
         }
     </style>
 </head>
@@ -21,7 +29,14 @@
     <h1>Calculator</h1>
     <div id="container">
         <div id="calculatorFrame">
-            <div class="resultBox">0.</div>
+            <div class="resultBox">
+                <div class="previousEntry">
+                    
+                </div>
+                <div class="currentEntry">
+                    0
+                </div>
+            </div>
             <div class="buttonRow">
                 <button>7</button>
                 <button>8</button>
@@ -39,6 +54,7 @@
                 <button>2</button>
                 <button>3</button>
                 <button>-</button>
+                <button>Bksp</button>
             </div>
             <div class="buttonRow">
                 <button>0</button>
@@ -52,58 +68,85 @@
 </body>
 
 <script>
+    let currentEntryField = document.querySelector('.currentEntry');
+    let previousEntryField = document.querySelector('.previousEntry');
+    
     const buttons = document.querySelectorAll('button');
+
     buttons.forEach(button => {
         button.addEventListener('click', (e) => {
-            let buttonValue = button.innerText;
-            switch(buttonValue) {
-                case '+':
-                    lastInput = document.querySelector('.resultBox').innerText*1; 
-                    lastOperator = 'add';
-                    break;
-                case '-':
-                    lastInput = document.querySelector('.resultBox').innerText*1;
-                    lastOperator = 'subtract';
-                    break;
-                case 'x':
-                    lastInput = document.querySelector('.resultBox').innerText*1;
-                    lastOperator = 'multiply';
-                    break;
-                case '\u00f7':
-                    lastInput = document.querySelector('.resultBox').innerText*1;
-                    lastOperator = 'divide';
-                    break;
-                case '.':
-                    console.log('decimal');
-                    break;
-                case 'Clear':
-                    document.querySelector('.resultBox').innerText = 0;
-                    break;
-                case '=':
-                    let input1 = lastInput * 1;
-                    lastInput = document.querySelector('.resultBox').innerText*1;
-                    let input2 = lastInput * 1;
-                    document.querySelector('.resultBox').innerText = operate(input1, input2, lastOperator);
-                    break;
-                default:
-                    if (document.querySelector('.resultBox').innerText*1 === 0 ||
-                        document.querySelector('.resultBox').innerText*1 === lastInput) {
-                        document.querySelector('.resultBox').innerText = buttonValue;
-                    }
-                    else {
-                        document.querySelector('.resultBox').innerText += buttonValue;
-                    }
-                    break;
-            }
-            console.log('lastInput: ' + lastInput);
-            console.log('lastOperator: ' + lastOperator);
+            entry(e.originalTarget.innerText);
         })
     })
 
-    let lastInput = document.querySelector('.resultBox').innerText;
+    function updateLastEntry(operator, operatorSymbol) {
+        lastInput = currentEntryField.innerText*1; 
+        lastOperator = operator;
+        previousEntryField.innerText += ' ' + lastInput + ' ' + operatorSymbol;
+    }
+
+    function clear() {
+        lastInput = 0;
+        currentEntryField.innerText = 0;
+        previousEntryField.innerText = '';
+    }
+
+    function backspace() {
+        currentEntry = currentEntryField.innerText;
+        newCurrentEntry = currentEntry.slice(0, -1);
+        if (newCurrentEntry === '') {
+            newCurrentEntry = 0;
+        }
+        return currentEntryField.innerText = newCurrentEntry
+    }
+
+    function entry(event) {
+        let buttonValue = event;
+        switch(buttonValue) {
+            case '+':
+                updateLastEntry('add', buttonValue);
+                break;
+            case '-':
+                updateLastEntry('subtract', buttonValue);
+                break;
+            case 'x':
+                updateLastEntry('multiply', buttonValue);
+                break;
+            case '\u00f7':
+                updateLastEntry('divide', buttonValue);
+                break;
+            case '.':
+                console.log('decimal');
+                break;
+            case 'Clear':
+                clear();
+                break;
+            case 'Bksp':
+                backspace();
+                break;
+            case '=':
+                let input1 = lastInput * 1;
+                lastInput = currentEntryField.innerText*1;
+                let input2 = lastInput * 1;
+                previousEntryField.innerText += ' ' + lastInput + ' ' + buttonValue;
+                currentEntryField.innerText = operate(input1, input2, lastOperator);
+                break;
+            default:
+                if (currentEntryField.innerText*1 === 0 ||
+                    currentEntryField.innerText*1 === lastInput) {
+                    currentEntryField.innerText = buttonValue;
+                }
+                else {
+                    currentEntryField.innerText += buttonValue;
+                }
+                break;
+        }
+    }
+    
+    let lastInput = document.querySelector('.currentEntry').innerText;
     let lastOperator = '';
 
-    const operate = (input1, input2, operator) => {
+    function operate(input1, input2, operator) {
         switch(operator) {
             case 'add':
                 return input1 + input2;
